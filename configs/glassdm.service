@@ -1,0 +1,13 @@
+[Unit]
+Description=Liquid Glass Display Manager
+After=systemd-user-sessions.service
+PartOf=graphical.target
+Conflicts=getty@tty1.service getty@tty2.service
+After=systemd-user-sessions.service getty@tty1.service getty@tty2.service plymouth-quit.service systemd-logind.service
+
+[Service]
+ExecStart=/var/lib/glassdm/main
+
+[Install]
+WantedBy=graphical.target
+
