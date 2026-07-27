@@ -4,8 +4,6 @@
 #include <pwd.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-//#define STB_IMAGE_WRITE_IMPLEMENTATION
-//#include "stb_image_write.h"
 #define GL_GLEXT_PROTOTYPES
 #include <GLFW/glfw3.h>
 #include <stdio.h>
@@ -21,7 +19,7 @@
 GLFWwindow *window;
 char passwd[64];
 int passlen=0,boxbias=0,boxl,usernum,usernow=0,arrowl,arrowb,arroww,arrowh,namew,nameh,scrw,scrh,winw,winh;
-float lasttime,shakeleft=0.3,lastshake,scrratio;
+float lasttime,shakeleft=0,lastshake,scrratio;
 extern char *vs,*fsbg,*fsjfa,*fsbox,*fsinit,*fspost,*fsblur,*fsavatar,*fselement;
 FT_Library library;
 FT_Face face;
@@ -341,7 +339,6 @@ int main(){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_COMPAT_PROFILE);
     window = glfwCreateWindow( 1920, 1080, "glassdm greeter", glfwGetPrimaryMonitor(), NULL);
-    //window = glfwCreateWindow( 500, 500, "glassdm greeter", NULL, NULL);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     glfwGetFramebufferSize(window,&scrw,&scrh);
@@ -400,7 +397,7 @@ int main(){
     }
     glBindFramebuffer(GL_FRAMEBUFFER,0);
 
-    unsigned char *bgbuffer=stbi_load("./background26.jpeg",&bgw,&bgh,&bgn,0);
+    unsigned char *bgbuffer=stbi_load("./bgimg",&bgw,&bgh,&bgn,0);
     GLuint bgformat=bgn==3?GL_RGB:GL_RGBA;
     glGenTextures(1,&bgimg);
     setImageParas(bgimg);

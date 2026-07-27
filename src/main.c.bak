@@ -126,27 +126,23 @@ int main(){
 	read(piperoot[0],&datain,sizeof(datain));
 	close(piperoot[0]);
 	waitpid(greeterroot,&status,0);
-	int loginpid=fork();
-	if(loginpid==0){
-		int ret=pam_start("glassdmlogin",datain.name,&greeterconv,&pamlogin);
-		ret=pam_set_item(pamlogin,PAM_TTY,"tty2");
-		ret=pam_open_session(pamlogin,0);
-		char *argv3[]={"/usr/bin/startplasma-wayland",NULL};
-		char **envp=pam_getenvlist(pamlogin);
-		int pidc=fork();
-		if(pidc==0){
-			initgroups(datain.name,datain.uid);
-			setgid(datain.uid);
-			setuid(datain.uid);
-			execve("/usr/bin/startplasma-wayland",argv3,envp);
-			return 1;
-		}
-		waitpid(pidc,&status,0);
-		pam_close_session(pamlogin,0);
-		pam_end(pamlogin,PAM_SUCCESS);
-		return 0;
+	int ret=pam_start("glassdmlogin",datain.name,&greeterconv,&pamlogin);
+	ret=pam_set_item(pamlogin,PAM_TTY,"tty2");
+	ret=pam_open_session(pamlogin,0);
+	char *argv3[]={"/usr/bin/startplasma-wayland",NULL};
+	char **envp=pam_getenvlist(pamlogin);
+	int pidc=fork();
+	if(pidc==0){
+		initgroups(datain.name,datain.uid);
+		setgid(datain.uid);
+		setuid(datain.uid);
+		execve("/usr/bin/startplasma-wayland",argv3,envp);
 	}
-	waitpid(loginpid,&status,0);
+	waitpid(pidc,&status,0);
+	pam_close_session(pamlogin,0);
+	pam_end(pamlogin,PAM_SUCCESS);
+	ioctl(tty,VT_ACTIVATE,1);
+	ioctl(tty,VT_WAITACTIVE,1);
 	goto startgreeter;
 	return 0;
 }
