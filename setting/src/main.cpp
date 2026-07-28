@@ -164,7 +164,7 @@ LGDMKCM::LGDMKCM(QObject *parent, const KPluginMetaData &data)
 
     QButtonGroup *group=new QButtonGroup;
     group->addButton(ttyRadio,0);
-    group->addButton(loginRadio);
+    group->addButton(loginRadio,1);
     connect(group, &QButtonGroup::idClicked, this, [=](int id){
         if(id!=0&&id!=1){
             return;
