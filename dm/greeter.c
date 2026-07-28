@@ -16,9 +16,12 @@
 #define min(a,b) a>b?b:a
 #include <time.h>
 #include "utils.h"
+#include "readcfg.h"
 GLFWwindow *window;
 char passwd[64];
 int passlen=0,boxbias=0,boxl,usernum,usernow=0,arrowl,arrowb,arroww,arrowh,namew,nameh,scrw,scrh,winw,winh;
+int logouttype=1,opacity=40,refraction=100,brightness=100,blur=5,edge=100,colorr=217,colorg=217,colorb=217,color=0xd9d9d9;
+bool testmode=false;
 float lasttime,shakeleft=0,lastshake,scrratio;
 extern char *vs,*fsbg,*fsjfa,*fsbox,*fsinit,*fspost,*fsblur,*fsavatar,*fselement;
 FT_Library library;
@@ -57,7 +60,7 @@ user_t *getuserlist(int *usernum){
         if(len>10){
             break;
         }if(uidmax>=pwd->pw_uid && pwd->pw_uid>=uidmin){
-            strncpy((result+len)->name,pwd->pw_name,64);
+            strncpy((result+len)->name,pwd->pw_name,sizeof((result+len)->name));
             (result+len)->uid=pwd->pw_uid;
             len++;
         }
@@ -142,7 +145,11 @@ void updateTime(float percent,bool clear){
     glBindTexture(GL_TEXTURE_2D,fboblurmap[0]);
     glUniform1i(glGetUniformLocation(progpost,"bgblur"),2);
     glUniform2i(glGetUniformLocation(progpost,"scrsize"),timew,timeh);
-    glUniform1f(glGetUniformLocation(progpost,"scrratio"),scrratio*TIMERATIO);
+    glUniform1f(glGetUniformLocation(progpost,"scrratio"),scrratio*TIMERATIO/(edge/100.));
+    glUniform1f(glGetUniformLocation(progpost,"opacity"),opacity/100.);
+    glUniform1f(glGetUniformLocation(progpost,"refraction"),refraction/100.);
+    glUniform1f(glGetUniformLocation(progpost,"brightness"),brightness/100.);
+    glUniform3f(glGetUniformLocation(progpost,"glasscolor"),colorr/255.,colorg/255.,colorb/255.);
     glUniform2f(glGetUniformLocation(progpost,"uvbg0"),(float)timel/scrw,1.-(float)timeb/scrh);
     glUniform2f(glGetUniformLocation(progpost,"uvbg1"),(float)(timel+timew*scrratio)/scrw,1.-(float)(timeb+timeh*scrratio)/scrh);
     glDrawArrays(GL_TRIANGLE_STRIP,0,4);
@@ -196,7 +203,12 @@ void drawbox(bool clear){
     glUniform2f(glGetUniformLocation(progbox,"uvbg0"),(float)boxl/scrw,1.-100./1080.);
     glUniform2f(glGetUniformLocation(progbox,"uvbg1"),1.-(float)boxl/scrw,1.-(100.+boxh)/1080.);
     glUniform2i(glGetUniformLocation(progbox,"scrsize"),boxw,boxh);
+    glUniform1f(glGetUniformLocation(progbox,"opacity"),opacity/100.);
+    glUniform1f(glGetUniformLocation(progbox,"refraction"),refraction/100.);
+    glUniform1f(glGetUniformLocation(progbox,"brightness"),brightness/100.);
     glUniform1f(glGetUniformLocation(progbox,"scrratio"),scrratio);
+    glUniform1f(glGetUniformLocation(progbox,"edge"),edge/100.);
+    glUniform3f(glGetUniformLocation(progbox,"glasscolor"),colorr/255.,colorg/255.,colorb/255.);
     glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 
     if(passlen==0){
@@ -279,7 +291,7 @@ void reloadavatar(){
 }
 void charfunc(GLFWwindow* window, unsigned int codepoint){
     if(passlen<sizeof(passwd)){
-        passwd[passlen]=char(codepoint);
+        passwd[passlen]=(char)codepoint;
         passlen++;
     }
     drawbox(false);
@@ -293,12 +305,16 @@ void keyfunc(GLFWwindow* window,int key,int scancode,int action,int mods){
         updatescreen();
     }
     if(action==GLFW_PRESS && key==GLFW_KEY_ENTER){
-		passwdpipe dataout;
-		memset(&dataout,0,sizeof(passwdpipe));
-		dataout.uid=(users+usernow)->uid;
-		strncpy(dataout.name,(users+usernow)->name,sizeof(dataout.name));
-		strncpy(dataout.passwd,passwd,sizeof(dataout.passwd));
-		write(78,&dataout,sizeof(passwdpipe));
+        if(testmode){
+            clearhandler(0);
+            return;
+        }
+        passwdpipe dataout;
+        memset(&dataout,0,sizeof(passwdpipe));
+        dataout.uid=(users+usernow)->uid;
+        strncpy(dataout.name,(users+usernow)->name,sizeof(dataout.name));
+        strncpy(dataout.passwd,passwd,sizeof(dataout.passwd));
+        write(78,&dataout,sizeof(passwdpipe));
     }
 }
 void mousefunc(GLFWwindow* window, int button, int action, int mods){
@@ -329,8 +345,12 @@ void mousefunc(GLFWwindow* window, int button, int action, int mods){
 		updatescreen();
 	}
 }
-int main(){
+int main(int argc,char *argv[]){
+    if(argc>1&&!strncmp(argv[1],"--testmode",11)){
+        testmode=true;
+    }
     memset(passwd,0,sizeof(passwd));
+    readcfg();
     FT_Init_FreeType(&library);
     FT_New_Face( library, "./PingFangSC-Medium.otf", 0, &face); 
     glfwInitHint(GLFW_PLATFORM,GLFW_PLATFORM_WAYLAND);
@@ -338,7 +358,7 @@ int main(){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_COMPAT_PROFILE);
-    window = glfwCreateWindow( 1920, 1080, "glassdm greeter", glfwGetPrimaryMonitor(), NULL);
+    window = glfwCreateWindow( 1920, 1080, "lgdm greeter", glfwGetPrimaryMonitor(), NULL);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     glfwGetFramebufferSize(window,&scrw,&scrh);
@@ -420,7 +440,7 @@ int main(){
     glBindTexture(GL_TEXTURE_2D,bgimg);
     glUniform1i(glGetUniformLocation(progblur,"bg"),0);
     glUniform2i(glGetUniformLocation(progblur,"texsize"),bgw,bgh);
-    for(int pass=0;pass<5;pass++){
+    for(int pass=0;pass<blur;pass++){
         glUniform2f(glGetUniformLocation(progblur,"vert"),1.,0.);
         glBindTexture(GL_TEXTURE_2D,fboblurmap[0]);
         glBindFramebuffer(GL_FRAMEBUFFER,fboblur[1]);

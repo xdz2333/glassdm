@@ -68,6 +68,10 @@ uniform vec2 uvbg1;\n\
 uniform ivec2 scrsize;\n\
 uniform ivec2 texsize;\n\
 uniform float scrratio;\n\
+uniform float opacity;\n\
+uniform float refraction;\n\
+uniform float brightness;\n\
+uniform vec3 glasscolor;\n\
 void main(){\n\
     vec2 uv=pos;\n\
     vec2 uvbg=uv;\n\
@@ -87,13 +91,13 @@ void main(){\n\
         }\n\
     }\n\
     grad=normalize(grad);\n\
-    uvbg+=grad*0.08*pow( smoothstep(-12.0,0.0,sdf), 2.5)*step(sdf,0.);\n\
+    uvbg+=grad*0.08*refraction*pow( smoothstep(-12.0,0.0,sdf), 2.5)*step(sdf,0.);\n\
     uvbg+=sin(uvbg.x*50.0)*sin(uvbg.y*40.0)*0.003*step(sdf,2.);\n\
     uvbg=mix(uvbg0,uvbg1,uvbg);\n\
-    vec3 bgcolor=mix(texture(bg,uvbg),texture(bgblur,uvbg),clamp(smoothstep(-16.,-2.,sdf),0.8,1)*step(sdf,0.)).rgb;\n\
-    bgcolor=mix(bgcolor,vec3(.85),step(sdf,0.)*.4);\n\
+    vec3 bgcolor=mix(texture(bg,uvbg),texture(bgblur,uvbg),clamp(smoothstep(-16.,-2.,sdf),0.9,1)*step(sdf,0.)).rgb;\n\
+    bgcolor=mix(bgcolor,glasscolor,step(sdf,0.)*opacity);\n\
     //vec3 light=smoothstep(5.,0.,sdf)*step(0.,sdf)*vec3(0.2);\n\
-    vec3 light=smoothstep(5,0.,abs(sdf))*vec3(.25)*pow(abs(dot(vec2(0.707,0.707),grad)),2.5);\n\
+    vec3 light=smoothstep(5,0.,abs(sdf))*vec3(.25*brightness)*pow(abs(dot(vec2(0.707,0.707),grad)),2.5);\n\
     fragcolor=vec4(bgcolor+light*step(sdf,0),1.);\n\
 }\n\
 ";
@@ -107,6 +111,11 @@ uniform vec2 uvbg0;\n\
 uniform vec2 uvbg1;\n\
 uniform ivec2 scrsize;\n\
 uniform float scrratio;\n\
+uniform float edge;\n\
+uniform float opacity;\n\
+uniform float refraction;\n\
+uniform float brightness;\n\
+uniform vec3 glasscolor;\n\
 void main(){\n\
     vec2 uv=pos;\n\
     vec2 uvbg=uv;\n\
@@ -125,17 +134,17 @@ void main(){\n\
         grad=st-scrratio*vec2(285,35);\
     }\n\
     sdf-=25*scrratio;\n\
-    sdf/=scrratio;\n\
+    sdf/=scrratio*edge;\n\
     grad=normalize(grad);\n\
     if(sdf>5.){\n\
         discard;\n\
     }\n\
-    uvbg+=grad*0.15*pow( smoothstep(-12.0,0.0,sdf), 2.5)*step(sdf,0.);\n\
+    uvbg+=grad*refraction*0.15*pow( smoothstep(-12.0,0.0,sdf), 2.5)*step(sdf,0.);\n\
     //uvbg+=sin(uvbg.x*50.0)*sin(uvbg.y*40.0)*0.003*step(sdf,2.);\n\
     uvbg=mix(uvbg0,uvbg1,uvbg);\n\
     vec3 bgcolor=mix(texture(bg,uvbg),texture(bgblur,uvbg),clamp(smoothstep(-16.,-2.,sdf),0.8,1)*step(sdf,0.)).rgb;\n\
-    bgcolor=mix(bgcolor,vec3(.85),step(sdf,0.)*.4);\n\
-    vec3 light=smoothstep(5,0.,abs(sdf))*vec3(.25)*pow(abs(dot(vec2(0.707,0.707),grad)),2.5);\n\
+    bgcolor=mix(bgcolor,glasscolor,step(sdf,0.)*opacity);\n\
+    vec3 light=smoothstep(5,0.,abs(sdf))*vec3(.25*brightness)*pow(abs(dot(vec2(0.707,0.707),grad)),2.5);\n\
     fragcolor=vec4(bgcolor+light*step(sdf,0),1.);\n\
 }\n\
 ";

@@ -6,7 +6,7 @@ Conflicts=getty@tty2.service
 After=systemd-user-sessions.service getty@tty2.service plymouth-quit.service systemd-logind.service
 
 [Service]
-ExecStart=/var/lib/glassdm/main
+ExecStart=/var/lib/lgdm/main
 
 [Install]
 WantedBy=graphical.target

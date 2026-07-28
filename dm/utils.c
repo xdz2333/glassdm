@@ -10,6 +10,7 @@
 #define u8 unsigned char
 #define max(a,b) a>b?a:b
 #define min(a,b) a>b?b:a
+#define contif(val) if(val){continue;}
 extern FT_Library library;
 extern FT_Face face;
 u32 *splitutf8(u8 *utf8in,int *lenout){
@@ -124,4 +125,3 @@ char *renderstring(u8 *strin,int width,int height,int *realwidth,int *realheight
     //stbi_write_png("./strnew.png",newwidth,newheight,1,newbuffer,0);
     return newbuffer;
 }
-

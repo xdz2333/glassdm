@@ -1,0 +1,15 @@
+{
+    "KPlugin": {
+        "Name": "LGDM config",
+        "Name[zh_CN]": "LGDM登录管理器",
+        "Description": "Configure LGDM",
+        "Description[zh_CN]": "配置LGDM登录管理器",
+        "Icon": "users-admin",
+        "License": "GPL-3.0",
+        "FormFactors": [
+            "desktop"
+        ]
+    },
+    "X-KDE-System-Settings-Parent-Category": "appearance",
+    "X-KDE-Keywords": "LGDM,Login,Background"
+}
