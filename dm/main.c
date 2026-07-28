@@ -19,8 +19,8 @@ void readcfg(){
 		return;
 	}
     while(fgets(linebuf,sizeof(linebuf),cfg)){
-        if(!strncmp(linebuf,"logouttype=",sizeof("logouttype="))){
-            logouttype=atoi(linebuf+sizeof("logouttype="));
+        if(!strncmp(linebuf,"logouttype=",sizeof("logouttype=")-1)){
+            logouttype=atoi(linebuf+sizeof("logouttype=")-1);
             if(logouttype!=0&&logouttype!=1){
                 logouttype=1;
             }
